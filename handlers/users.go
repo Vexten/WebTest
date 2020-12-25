@@ -9,6 +9,19 @@ import (
 	in "github.com/richkule/prepareTestWeb/init"
 )
 
+// Выводит страницу входа в систему /login
+func Login(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
+	if sessUs.UsId != in.GuestUserId {
+		http.Redirect(w, req, `/`, http.StatusFound)
+		return nil
+	}
+	err := renderTemplate(w, in.LogPage, nil)
+	if err != nil {
+		err = errors.New("Ошибка обработки шаблона авторизации login " + err.Error())
+	}
+	return err
+}
+
 // Обрабатывает регистрацию
 func Reg(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
 	if sessUs.UsId != in.GuestUserId {
