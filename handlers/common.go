@@ -12,6 +12,60 @@ import (
 	in "github.com/richkule/prepareTestWeb/init"
 )
 
+// Функция, для создания и обработки ручек ручек
+func MakeHandler(fn in.HandlerIdFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+		defer func() {
+			if err != nil {
+				wrongFun(w, err)
+			}
+		}()
+		session, err := in.Store.Get(r, in.SessionName)
+		if err != nil {
+			log.Println("Ошибки куки MakeHandler ")
+		}
+		uid, ok := session.Values[in.CookRowName].(in.SessUs)
+		// Сессия получена
+		if ok {
+
+			var oldUid *in.SessUs
+			oldUid, err = db.GetUserId(uid.SessId)
+			if err != nil {
+				err = errors.New("Ошибка получения userId из базы makeHandler " + err.Error())
+				return
+			}
+
+			if oldUid != nil { // Данная сессия уже существует в БД
+				err = db.UpdateSessTime(uid.SessId)
+				if err != nil {
+					err = errors.New("Ошибка обновления время активности сессии makeHandler " + err.Error())
+					return
+				}
+				err = fn(w, r, &uid)
+			} else { // Сессии нет в БД
+				var uid *in.SessUs
+				uid, err = hf.CreateAndSetSess(w, r, session, in.GuestUserId)
+				if err != nil {
+					err = errors.New("Ошибка генерации или установки сессии makeHandler " + err.Error())
+					return
+				}
+				err = fn(w, r, uid)
+			}
+
+		} else { // Куки не удалось правильно прочитать, действия как если сессии нету
+			var uid *in.SessUs
+			uid, err = hf.CreateAndSetSess(w, r, session, in.GuestUserId)
+			if err != nil {
+				err = errors.New("Ошибка генерации или установки сессии makeHandler " + err.Error())
+				return
+			}
+			err = fn(w, r, uid)
+		}
+	}
+}
+
+
 // Обрабатывает шаблон шапки сайта
 func renderHeader(userId in.UsId) (template.HTML, error) {
 	var err error
