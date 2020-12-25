@@ -29,6 +29,19 @@ func GetUserData(name in.UserName) (id in.UsId, pass string, err error) {
 	}
 	return id, string(passArr[:]), nil
 }
+
+// Проверяет существует ли пользователь с таким логином
+func CheckUser(name in.UserName) (bool, error) {
+	res, err := db.Exec(context.Background(), `select * from login where login = $1`, name)
+	if err != nil {
+		return false, err
+	}
+	if res[len(res)-1] == '0' {
+		return false, nil
+	}
+	return true, nil
+}
+
 // Получает логин пользователя по его id
 func GetUserName(id in.UsId) (in.UserName, error) {
 	res := db.QueryRow(context.Background(), `select * from login where id = $1`, id)
