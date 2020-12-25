@@ -1,14 +1,39 @@
 package handlers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"regexp"
 	"strconv"
 
 	in "github.com/richkule/prepareTestWeb/init"
 )
+
+// Обрабатывает шаблон шапки сайта
+func renderHeader(userId in.UsId) (template.HTML, error) {
+	var err error
+	data := in.DataHeader{}
+	if userId == in.GuestUserId {
+		data.UserName = "Гость"
+
+	} else {
+		data.UserName, err = db.GetUserName(userId)
+		if err != nil {
+			err = errors.New("Ошибка получения имени пользователя " + err.Error())
+			return "", err
+		}
+	}
+	buf := bytes.NewBufferString("")
+	err = renderTemplate(buf, in.HeaderPath, data)
+	if err != nil {
+		err = errors.New("Ошибка обработки шапки " + err.Error())
+		return "", err
+	}
+	return template.HTML(buf.String()), nil
+}
 
 // Обработка страницы редактирования различных элементов /edit/elem/id
 func Edit(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
