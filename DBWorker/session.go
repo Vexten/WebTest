@@ -10,3 +10,11 @@ func CreateSessId(id *in.SessUs) error {
 	_, err := db.Exec(context.Background(), sql, id.SessId, id.UsId, timeNow)
 	return err
 }
+
+// Обновляет последнюю активность сессии данный момент времени
+func UpdateSessTime(sid in.SessId) error {
+	sql := `UPDATE session SET last_activity = $1 WHERE sess_id = $2`
+	timeNow := time.Now().Format("2006-01-02 15:04:05")
+	_, err := db.Exec(context.Background(), sql, timeNow, sid)
+	return err
+}
