@@ -82,3 +82,9 @@ func Edit(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
 	err := errors.New("Неправильный путь для редактирования edit ")
 	return err
 }
+
+// Обрабатывает ошибку во время исполнения
+func wrongFun(w http.ResponseWriter, err error) {
+	log.Println(err.Error())
+	http.Error(w, "", http.StatusBadGateway)
+}
