@@ -89,6 +89,24 @@ func renderHeader(userId in.UsId) (template.HTML, error) {
 	return template.HTML(buf.String()), nil
 }
 
+
+// Выводит основную страницу пользователя
+func Index(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
+	var err error
+	_ = req // Переменная необходима для совместительства с типом HandlerIdFunc
+	data := in.DataIndex{}
+
+	if data.Header, err = renderHeader(sessUs.UsId); err != nil {
+		err = errors.New("Ошибка обработки шапки index " + err.Error())
+		return err
+	}
+	if err = renderTemplate(w, in.IndexPage, data); err != nil {
+		err = errors.New("Ошибка обработки шаблона index " + err.Error())
+		return err
+	}
+	return nil
+}
+
 // Обработка страницы редактирования различных элементов /edit/elem/id
 func Edit(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
 	if sessUs.UsId == in.GuestUserId {
