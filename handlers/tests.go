@@ -3,6 +3,28 @@ import (
 	"net/http"
 )
 
+// Обрабатывает страницу tests
+func Test(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
+	_ = req // Переменная необходима для совместительства с типом HandlerIdFunc
+	data := in.DataTest{}
+	var err error
+	if data.Header, err = renderHeader(sessUs.UsId); err != nil {
+		err = errors.New("Ошибка обработки шаблона шапки test " + err.Error())
+		return err
+	}
+	data.Tests, err = db.GetTests(1)
+	if err != nil {
+		err = errors.New("Ошибка получения тестов test " + err.Error())
+		return err
+	}
+	if err = renderTemplate(w, in.TestPage, data); err != nil {
+		err = errors.New("Ошибка обработки шаблона test " + err.Error())
+		return err
+	}
+	return nil
+}
+
+
 // Обрабатывает создание нового теста
 func NewTest(w http.ResponseWriter, req *http.Request, sessUs *in.SessUs) error {
 	if req.Method == "GET" {
